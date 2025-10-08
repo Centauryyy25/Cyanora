@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { signIn } from "next-auth/react"
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -44,7 +45,7 @@ const SignUp03Page = () => {
             Sign up for Shadcn UI Blocks
           </p>
 
-          <Button className="mt-8 w-full gap-3">
+          <Button className="mt-8 w-full gap-3" onClick={() => signIn("google", { callbackUrl: "/dashboard" })}>
             <GoogleLogo />
             Continue with Google
           </Button>
