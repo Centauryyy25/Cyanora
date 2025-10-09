@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from "@/components/login-form";
 
 export default function Home() {
   return (
@@ -11,4 +11,3 @@ export default function Home() {
 }
 
 console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
-

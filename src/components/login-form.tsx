@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,23 +20,42 @@ export function LoginForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Prefetch CSRF cookie so the backend accepts the login request
+  useEffect(() => {
+    fetch("/api/auth/me", { method: "GET", cache: "no-store" }).catch(() => {});
+  }, []);
+
+  const getCookie = (name: string) =>
+    document.cookie
+      .split("; ")
+      .find((c) => c.startsWith(name + "="))
+      ?.split("=")[1];
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
+      const csrf = getCookie("csrf_token") ?? "";
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+        },
+        body: JSON.stringify({ email, password }),
       });
-
-      if (res?.ok && !res.error) {
-        router.push("/dashboard");
-      } else {
-        setError("Email atau password salah.");
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json?.error || "Email atau password salah.");
+        return;
       }
+      const role = json?.data?.role as string | undefined;
+      if (role === "Admin") router.push("/dashboard/admin");
+      else if (role === "HR") router.push("/dashboard/hr");
+      else if (role === "Karyawan") router.push("/dashboard/employee");
+      else router.push("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
       setError("Gagal login. Coba lagi.");
