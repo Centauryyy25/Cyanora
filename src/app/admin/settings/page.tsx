@@ -1,9 +1,9 @@
 import NavigationBar from "@/components/ui/navigation-bar";
-import { RoleGuard } from "@/components/role-guard";
+import { PermissionGuard } from "@/components/permission-guard";
 
 export default function AdminSettingsPage() {
   return (
-    <RoleGuard allow={["Admin"]} redirectTo="/login">
+    <PermissionGuard requireAny={["EMP_VIEW", "USER_CREATE", "EMP_EDIT"]} redirectTo="/login">
       <main className="min-h-[100dvh] bg-background pb-24">
         <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-16 text-white">
           <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
@@ -16,7 +16,6 @@ export default function AdminSettingsPage() {
         </section>
         <NavigationBar homeHref="/home" />
       </main>
-    </RoleGuard>
+    </PermissionGuard>
   );
 }
-

@@ -17,19 +17,20 @@ const csp = [
 
 export default auth(async (req) => {
   const { nextUrl } = req;
-  const isAuthedFromAuth = !!req.auth?.user;
-  let isAuthed = isAuthedFromAuth;
-  // Accept custom app_session JWT as auth as well
-  if (!isAuthed) {
-    const token = req.cookies.get("app_session")?.value;
-    if (token) {
-      try {
-        await verifyAppJWT(token);
-        isAuthed = true;
-      } catch {
-        isAuthed = false;
-      }
+  // Prefer our DB-backed app_session over NextAuth to avoid identity mismatch
+  let isAuthed = false;
+  const token = req.cookies.get("app_session")?.value;
+  if (token) {
+    try {
+      await verifyAppJWT(token);
+      isAuthed = true;
+    } catch {
+      isAuthed = false;
     }
+  }
+  // Fallback to NextAuth session if no valid app_session
+  if (!isAuthed) {
+    isAuthed = !!req.auth?.user;
   }
   const pathname = nextUrl.pathname;
 

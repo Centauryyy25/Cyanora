@@ -1,10 +1,10 @@
 import NavigationBar from "@/components/ui/navigation-bar";
 import { RequestCenter } from "@/components/request-center";
-import { RoleGuard } from "@/components/role-guard";
+import { PermissionGuard } from "@/components/permission-guard";
 
 export default function RequestPage() {
   return (
-    <RoleGuard allow={["Karyawan"]} redirectTo="/login">
+    <PermissionGuard requireAny={["LEAVE_REQUEST", "ATTENDANCE_LOG"]} redirectTo="/login">
       <main className="min-h-[100dvh] bg-background pb-24">
       <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-16 text-white">
         <div>
@@ -17,6 +17,6 @@ export default function RequestPage() {
       </section>
       <NavigationBar homeHref="/home" />
     </main>
-    </RoleGuard>
+    </PermissionGuard>
   );
 }

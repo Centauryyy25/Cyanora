@@ -10,6 +10,7 @@ export type AppSession = JWTPayload & {
   username?: string | null;
   role?: string | null;
   permissions?: string[];
+  jti?: string; // unique session id for revocation
   employee?: {
     id?: number | null;
     full_name?: string | null;
@@ -33,4 +34,3 @@ export async function verifyAppJWT(token: string): Promise<AppSession> {
   const { payload } = await jwtVerify(token, secret);
   return payload as AppSession;
 }
-

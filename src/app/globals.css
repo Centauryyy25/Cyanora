@@ -122,3 +122,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* Subtle link transitions */
+  a {
+    @apply transition-colors duration-200 ease-in-out;
+  }
+
+  /* Reusable micro-interaction utility */
+  .interactive {
+    @apply transition-all duration-300 ease-in-out motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-sm;
+  }
+}

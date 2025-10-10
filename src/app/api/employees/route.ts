@@ -29,14 +29,8 @@ export async function GET(req: Request) {
         .optional()
         .transform((v) => (v ? v.toUpperCase() : v)),
       q: z.string().trim().default(""),
-      limit: z
-        .string()
-        .transform((v) => (v ? Number(v) : 25))
-        .pipe(z.number().int().min(1).max(100)),
-      offset: z
-        .string()
-        .transform((v) => (v ? Number(v) : 0))
-        .pipe(z.number().int().min(0)),
+      limit: z.coerce.number().int().min(1).max(100).default(25),
+      offset: z.coerce.number().int().min(0).default(0),
     });
     const parsed = schema.safeParse(Object.fromEntries(searchParams.entries()));
     if (!parsed.success) {
@@ -118,14 +112,11 @@ export async function GET(req: Request) {
     const flat = (data ?? []).map((row: any) => ({
       id: row.id,
       full_name: row.full_name,
-      email: row.email,
-      phone_number: row.phone_number,
-      employment_status: row.employment_status,
-      join_date: row.join_date,
-      photo_url: row.photo_url,
-      department: row.departments?.name ?? null,
       position: row.positions?.title ?? null,
-      role: row.users?.roles?.name ?? null,
+      department: row.departments?.name ?? null,
+      status: row.employment_status ?? null,
+      join_date: row.join_date ?? null,
+      avatar_url: row.photo_url ?? null,
     }));
 
     // =========================================================

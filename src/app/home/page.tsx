@@ -1,5 +1,4 @@
 import NavigationBar from "@/components/ui/navigation-bar";
-import { RoleGuard } from "@/components/role-guard";
 import { TakeAttendanceSection } from "@/components/take-attendance";
 import {
   CalendarCheck,
@@ -11,6 +10,7 @@ import {
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { cookies } from "next/headers";
+import {AttendanceCard} from "@/components/attendance-card"
 import { verifyAppJWT } from "@/lib/jwt";
 import { AttendanceAnalytics } from "@/components/attendance-analytics";
 // Sheet actions are available on Request pages; here we navigate via links for clear URLs
@@ -25,22 +25,24 @@ import { WeeklyStatus } from "@/components/weekly-status";
 
 export default async function HomePage() {
   const session = await auth();
-  let userName: string | undefined =
-    (session?.user?.name as string | undefined) ||
-    (session?.user?.email ? String(session.user.email).split("@")[0] : undefined);
-
-  // Fallback to custom app_session cookie if NextAuth session missing name
-  if (!userName) {
-    try {
-      const cookieStore = await cookies();
-      const token = cookieStore.get("app_session")?.value;
-      if (token) {
-        const payload = await verifyAppJWT(token);
-        userName = (payload as any)?.employee?.full_name
-          || (payload as any)?.username
-          || ((payload as any)?.email ? String((payload as any).email).split("@")[0] : undefined);
-      }
-    } catch {}
+  // Prefer DB-backed app_session identity for greeting
+  let userName: string | undefined = undefined;
+  let roleName: string | null = null;
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("app_session")?.value;
+    if (token) {
+      const payload = await verifyAppJWT(token);
+      userName = (payload as any)?.employee?.full_name
+        || (payload as any)?.username
+        || ((payload as any)?.email ? String((payload as any).email).split("@")[0] : undefined);
+      roleName = (payload as any)?.role ?? null;
+    }
+  } catch {}
+  // Fallback to NextAuth session if needed
+  if (!userName && session?.user) {
+    userName = (session.user.name as string | undefined)
+      || (session.user.email ? String(session.user.email).split("@")[0] : undefined);
   }
   userName = userName || "User";
   const today = new Intl.DateTimeFormat("id-ID", {
@@ -59,7 +61,6 @@ export default async function HomePage() {
   ];
 
   return (
-    <RoleGuard allow={["Karyawan"]} redirectTo="/login">
     <main className="min-h-[100dvh] bg-background pb-24">
       {/* Header with gradient and greeting */}
       <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-24 text-white animate-in fade-in-50 slide-in-from-top-2 duration-500">
@@ -108,6 +109,7 @@ export default async function HomePage() {
           <div className="grid grid-cols-3 gap-3 animate-in fade-in-50 duration-500 delay-300">
             {features.map((f, i) => {
               const style = { animationDelay: `${(i + 1) * 60}ms` } as const;
+              const isHR = roleName === "HR";
               if (f.label === "Sakit") {
                 return (
                   <Link
@@ -183,11 +185,41 @@ export default async function HomePage() {
                   </Link>
                 );
               }
+              if (f.label === "Ask Leave") {
+                if (isHR) {
+                  return (
+                    <Link
+                      key={f.label}
+                      href="/hr/approvals"
+                      className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm outline-none transition hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#23A1A0]/40 focus-visible:ring-offset-2 animate-in fade-in-50 zoom-in-95"
+                      style={style}
+                    >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-br from-teal-50 to-cyan-50 text-black ring-1 ring-black/0 transition group-hover:border-[#23A1A0]/40 group-hover:text-[#23A1A0] group-hover:ring-black/5 group-active:scale-95">
+                        <f.icon className="h-5 w-5" aria-hidden="true" />
+                      </div>
+                      <span className="text-xs font-medium text-gray-700">Approval Center</span>
+                    </Link>
+                  );
+                }
+                // Non-HR: show disabled-style card
+                return (
+                  <div
+                    key={f.label}
+                    className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm opacity-60 cursor-not-allowed select-none animate-in fade-in-50 zoom-in-95"
+                    style={style}
+                    title="Hanya HR yang dapat mengakses Approval Center"
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-br from-teal-50 to-cyan-50 text-gray-700 ring-1 ring-black/0">
+                      <f.icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">Approval Center</span>
+                  </div>
+                );
+              }
               
               return (
-                <button
+                <div
                   key={f.label}
-                  type="button"
                   className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm outline-none transition hover:shadow-md active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#23A1A0]/40 focus-visible:ring-offset-2 animate-in fade-in-50 zoom-in-95"
                   style={style}
                 >
@@ -195,7 +227,7 @@ export default async function HomePage() {
                     <f.icon className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <span className="text-xs font-medium text-gray-700">{f.label}</span>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -205,6 +237,5 @@ export default async function HomePage() {
       {/* Bottom navigation - keep existing component and layout */}
       <NavigationBar />
     </main>
-    </RoleGuard>
   );
 }

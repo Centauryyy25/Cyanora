@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plane, Stethoscope, ClipboardList, UserCheck, Receipt, Clock, PlaneTakeoff, GraduationCap } from "lucide-react";
+import { Plane, Stethoscope, ClipboardList, UserCheck, Receipt, Clock, PlaneTakeoff, GraduationCap, Users } from "lucide-react";
 
 type Feature = {
   label: string;
@@ -11,6 +11,23 @@ type Feature = {
 };
 
 export function RequestCenter() {
+  const [isAdmin, setIsAdmin] = React.useState(false);
+  React.useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include", cache: "no-store" });
+        const { data } = (await res.json()) as any;
+        const roleName: string | null = data?.role?.name ?? null;
+        if (!cancelled) setIsAdmin(roleName === "Admin");
+      } catch {
+        if (!cancelled) setIsAdmin(false);
+      }
+    }
+    run();
+    return () => { cancelled = true; };
+  }, []);
+
   const features: Feature[] = [
     { label: "Cuti / Izin", href: "/request/leave", icon: Plane },
     { label: "Sakit", href: "/request/sick", icon: Stethoscope },
@@ -24,7 +41,7 @@ export function RequestCenter() {
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {features.map((f) => (
+      {(isAdmin ? [{ label: "Manage Karyawan", href: "/admin/employees", icon: Users } as Feature] : []).concat(features).map((f) => (
         <Link
           key={f.href}
           href={f.href}

@@ -12,6 +12,7 @@ export function useEmployees({ q = "", status = "ALL" }: UseEmployeesParams) {
   const [data, setData] = React.useState<Employee[] | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [nonce, setNonce] = React.useState(0);
 
   React.useEffect(() => {
     const ac = new AbortController();
@@ -38,8 +39,9 @@ export function useEmployees({ q = "", status = "ALL" }: UseEmployeesParams) {
     }
     run();
     return () => ac.abort();
-  }, [q, status]);
+  }, [q, status, nonce]);
 
-  return { employees: data, isLoading, error } as const;
+  const refresh = React.useCallback(() => setNonce((n) => n + 1), []);
+
+  return { employees: data, isLoading, error, refresh } as const;
 }
-

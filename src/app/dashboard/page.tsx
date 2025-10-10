@@ -1,3 +1,5 @@
+"use client";
+
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -13,9 +15,11 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { PermissionGuard } from "@/components/permission-guard";
 
 export default function Page() {
   return (
+    <PermissionGuard requireAny={["ATTENDANCE_LOG","EMP_VIEW"]} redirectTo="/login">
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
@@ -48,5 +52,6 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </PermissionGuard>
   )
 }

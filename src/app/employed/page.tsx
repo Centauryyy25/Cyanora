@@ -2,7 +2,19 @@
 
 import * as React from "react";
 import NavigationBar from "@/components/ui/navigation-bar";
+import { PermissionGuard } from "@/components/permission-guard";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { MoreVertical, Eye, Pencil, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AdminEmployeeEditor } from "@/components/admin-employee-editor";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,18 +49,31 @@ function StatusBadge({ value }: { value: Exclude<Status, "ALL"> | null | undefin
 }
 
 function EmployeeRow({
+  id,
   full_name,
   position,
   department,
   status,
   avatar_url,
+  isHR = false,
+  isAdmin = false,
+  onAdminEdit,
+  onAdminDelete,
+  onAfterAction,
 }: {
+  id: number;
   full_name: string | null;
   position: string | null;
   department: string | null;
   status: Exclude<Status, "ALL"> | null;
   avatar_url: string | null | undefined;
+  isHR?: boolean;
+  isAdmin?: boolean;
+  onAdminEdit?: () => void;
+  onAdminDelete?: () => void;
+  onAfterAction?: () => void;
 }) {
+  const router = useRouter();
   const initials = (full_name ?? "?")
     .split(" ")
     .map((p) => p[0])
@@ -67,7 +92,105 @@ function EmployeeRow({
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <p className="truncate text-sm font-medium text-gray-900 sm:text-base">{full_name ?? "Unnamed"}</p>
-            <StatusBadge value={status} />
+            <div className="flex items-center gap-1">
+              <StatusBadge value={status} />
+              {isHR && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full text-gray-500 hover:text-gray-700"
+                      aria-label="Employee actions"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-44">
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        router.push(`/profile/${id}`);
+                      }}
+                      className="gap-2"
+                    >
+                      <Eye className="h-4 w-4" /> Lihat detail
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      disabled={status === "ACTIVE"}
+                      onSelect={async (e) => {
+                        e.preventDefault();
+                        try {
+                          const res = await fetch(`/api/employees/${id}/status`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ status: "ACTIVE" }),
+                            credentials: "include",
+                          });
+                          if (!res.ok) throw new Error(`Gagal mengubah status (${res.status})`);
+                          onAfterAction?.();
+                        } catch (err) {
+                          alert((err as any)?.message || "Gagal mengubah status");
+                        }
+                      }}
+                    >
+                      Jadikan Active
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={status === "PROBATION"}
+                      onSelect={async (e) => {
+                        e.preventDefault();
+                        try {
+                          const res = await fetch(`/api/employees/${id}/status`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ status: "PROBATION" }),
+                            credentials: "include",
+                          });
+                          if (!res.ok) throw new Error(`Gagal mengubah status (${res.status})`);
+                          onAfterAction?.();
+                        } catch (err) {
+                          alert((err as any)?.message || "Gagal mengubah status");
+                        }
+                      }}
+                    >
+                      Jadikan Probation
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={status === "INACTIVE"}
+                      onSelect={async (e) => {
+                        e.preventDefault();
+                        try {
+                          const res = await fetch(`/api/employees/${id}/status`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ status: "INACTIVE" }),
+                            credentials: "include",
+                          });
+                          if (!res.ok) throw new Error(`Gagal mengubah status (${res.status})`);
+                          onAfterAction?.();
+                        } catch (err) {
+                          alert((err as any)?.message || "Gagal mengubah status");
+                        }
+                      }}
+                    >
+                      Jadikan Inactive
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {isAdmin && (
+                <div className="ml-1 flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={onAdminEdit} className="h-8 px-3">
+                    <Pencil className="h-4 w-4" /> Edit
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={onAdminDelete} className="h-8 px-3">
+                    <Trash2 className="h-4 w-4" /> Hapus
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
           <p className="truncate text-xs text-gray-500 sm:text-sm">
             {[position, department].filter(Boolean).join(" · ") || "—"}
@@ -94,9 +217,39 @@ function EmployeeRowSkeleton() {
 }
 
 export default function EmployedPage() {
+  const router = useRouter();
   const [q, setQ] = React.useState("");
   const [status, setStatus] = React.useState<Status>("ALL");
-  const { employees, isLoading, error } = useEmployees({ q, status });
+  const { employees, isLoading, error, refresh } = useEmployees({ q, status });
+  const [isHR, setIsHR] = React.useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = React.useState<boolean>(false);
+  const [editorOpen, setEditorOpen] = React.useState(false);
+  const [editing, setEditing] = React.useState<null | any>(null);
+
+  // Detect current role to enable HR-only UI
+  React.useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include", cache: "no-store" });
+        const { data } = (await res.json()) as any;
+        const roleName: string | null = data?.role?.name ?? null;
+        if (!cancelled) {
+          setIsAdmin(roleName === "Admin");
+          setIsHR(roleName === "HR" || roleName === "Admin");
+        }
+      } catch {
+        if (!cancelled) {
+          setIsHR(false);
+          setIsAdmin(false);
+        }
+      }
+    }
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const today = new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
@@ -106,6 +259,7 @@ export default function EmployedPage() {
   }).format(new Date());
 
   return (
+    <PermissionGuard requireAny={["EMP_VIEW"]} redirectTo="/login">
     <main className="min-h-[100dvh] bg-background pb-24">
       {/* Header matching Home styling */}
       <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-24 text-white">
@@ -172,17 +326,40 @@ export default function EmployedPage() {
             employees.map((emp) => (
               <EmployeeRow
                 key={emp.id}
+                id={emp.id}
                 full_name={emp.full_name}
                 position={emp.position}
                 department={emp.department}
                 status={(emp.status ?? null) as any}
                 avatar_url={emp.avatar_url}
+                isHR={isHR}
+                isAdmin={isAdmin}
+                onAdminEdit={() => { router.push(`/admin/employees?edit=${emp.id}`); }}
+                onAdminDelete={async () => {
+                  if (!confirm("Hapus karyawan ini? Tindakan tidak dapat dibatalkan.")) return;
+                  try {
+                    const res = await fetch(`/api/admin/employees/${emp.id}`, { method: "DELETE", credentials: "include" });
+                    if (!res.ok) throw new Error(`Gagal menghapus (${res.status})`);
+                    refresh();
+                  } catch (e: any) {
+                    alert(e?.message || "Gagal menghapus");
+                  }
+                }}
+                onAfterAction={refresh}
               />
             ))}
         </div>
       </section>
 
       <NavigationBar homeHref="/home" />
+      <AdminEmployeeEditor
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        onSaved={refresh}
+        editingId={editing?.id || null}
+        defaults={editing || {}}
+      />
     </main>
+    </PermissionGuard>
   );
 }

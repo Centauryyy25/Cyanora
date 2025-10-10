@@ -1,6 +1,6 @@
 import NavigationBar from "@/components/ui/navigation-bar";
 import { InboxList } from "@/components/inbox-list";
-import { RoleGuard } from "@/components/role-guard";
+import { PermissionGuard } from "@/components/permission-guard";
 
 export default function InboxPage() {
   const today = new Intl.DateTimeFormat("id-ID", {
@@ -11,7 +11,7 @@ export default function InboxPage() {
   }).format(new Date());
 
   return (
-    <RoleGuard allow={["Karyawan"]} redirectTo="/login">
+    <PermissionGuard requireAny={["LEAVE_REQUEST", "ATTENDANCE_LOG"]} redirectTo="/login">
     <main className="min-h-[100dvh] bg-background pb-24">
       <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-24 text-white">
         <div className="flex items-start justify-between">
@@ -30,6 +30,6 @@ export default function InboxPage() {
 
       <NavigationBar homeHref="/home" />
     </main>
-    </RoleGuard>
+    </PermissionGuard>
   );
 }

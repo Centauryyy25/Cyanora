@@ -1,10 +1,10 @@
 import NavigationBar from "@/components/ui/navigation-bar";
 import { LeaveRequestAction } from "@/components/leave-action";
-import { RoleGuard } from "@/components/role-guard";
+import { PermissionGuard } from "@/components/permission-guard";
 
 export default function RequestLeavePage() {
   return (
-    <RoleGuard allow={["Karyawan"]} redirectTo="/login">
+    <PermissionGuard requireAny={["LEAVE_REQUEST"]} redirectTo="/login">
       <main className="min-h-[100dvh] bg-background pb-24">
       <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-16 text-white">
         <h1 className="text-2xl font-semibold tracking-tight">Cuti / Izin</h1>
@@ -15,6 +15,6 @@ export default function RequestLeavePage() {
       </section>
       <NavigationBar homeHref="/home" />
     </main>
-    </RoleGuard>
+    </PermissionGuard>
   );
 }

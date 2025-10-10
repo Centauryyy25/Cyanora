@@ -1,11 +1,11 @@
 import NavigationBar from "@/components/ui/navigation-bar";
-import { RoleGuard } from "@/components/role-guard";
+import { PermissionGuard } from "@/components/permission-guard";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
 export default function HRHomePage() {
   return (
-    <RoleGuard allow={["HR"]} redirectTo="/login">
+    <PermissionGuard requireAny={["EMP_VIEW", "LEAVE_APPROVE"]} redirectTo="/login">
       <main className="min-h-[100dvh] bg-background pb-24">
         <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-20 text-white">
           <h1 className="text-2xl font-semibold tracking-tight">HR Console</h1>
@@ -23,7 +23,6 @@ export default function HRHomePage() {
         </section>
         <NavigationBar homeHref="/home" />
       </main>
-    </RoleGuard>
+    </PermissionGuard>
   );
 }
-

@@ -163,13 +163,30 @@ export async function POST(req: Request) {
       description: "User login",
     });
 
-    // Create JWT
+    // Create JWT with JTI and persist single-session in DB (if table exists)
+    const jti = crypto.randomUUID();
+    try {
+      // Revoke previous active sessions for this user
+      await supabaseAdmin
+        .from("app_sessions")
+        .update({ revoked_at: nowIso })
+        .eq("user_id", user.id)
+        .is("revoked_at", null);
+      // Insert current session record
+      await supabaseAdmin.from("app_sessions").insert({
+        jti,
+        user_id: user.id,
+        created_at: nowIso,
+      } as any);
+    } catch {}
+
     const token = await signAppJWT({
       sub: String(user.id),
       email: user.email,
       username: user.username,
       role: roleName,
       permissions,
+      jti,
       employee: emp
         ? {
             id: (emp as any).id,

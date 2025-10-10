@@ -1,11 +1,11 @@
 import NavigationBar from "@/components/ui/navigation-bar";
-import { RoleGuard } from "@/components/role-guard";
+import { PermissionGuard } from "@/components/permission-guard";
 import Link from "next/link";
-import { Users, CheckCircle2, Settings } from "lucide-react";
+import { Users, CheckCircle2, Settings, Shield } from "lucide-react";
 
 export default function AdminHomePage() {
   return (
-    <RoleGuard allow={["Admin"]} redirectTo="/login">
+    <PermissionGuard requireAny={["EMP_VIEW", "EMP_EDIT", "USER_CREATE", "LEAVE_APPROVE"]} redirectTo="/login">
       <main className="min-h-[100dvh] bg-background pb-24">
         <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-20 text-white">
           <h1 className="text-2xl font-semibold tracking-tight">Admin Console</h1>
@@ -31,11 +31,16 @@ export default function AdminHomePage() {
               </div>
               <span className="text-xs font-medium text-gray-700">Settings</span>
             </Link>
+            <Link href="/admin/sessions" className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm transition hover:shadow-md">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-br from-teal-50 to-cyan-50 text-gray-700">
+                <Shield className="h-5 w-5" />
+              </div>
+              <span className="text-xs font-medium text-gray-700">Sessions</span>
+            </Link>
           </div>
         </section>
         <NavigationBar homeHref="/home" />
       </main>
-    </RoleGuard>
+    </PermissionGuard>
   );
 }
-

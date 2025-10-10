@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { signIn } from "next-auth/react"
+import logo from "@/components/Asset/White_Cynora.png"
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -40,21 +41,12 @@ const SignUp03Page = () => {
     <div className="h-screen flex items-center justify-center">
       <div className="w-full h-full grid lg:grid-cols-2">
         <div className="max-w-xs m-auto w-full flex flex-col items-center">
-          <Logo className="h-9 w-9" />
-          <p className="mt-4 text-xl font-semibold tracking-tight">
-            Sign up for Shadcn UI Blocks
+          <Logo 
+          src={(logo as any).src ?? logo}
+          className="h-9 w-9" />
+          <p className="mt-4 text-[#093A58] text-xl font-semibold tracking-tight">
+            Sign up for Cyanora
           </p>
-
-          <Button className="mt-8 w-full gap-3" onClick={() => signIn("google", { callbackUrl: "/home" })}>
-            <GoogleLogo />
-            Continue with Google
-          </Button>
-
-          <div className="my-7 w-full flex items-center justify-center overflow-hidden">
-            <Separator />
-            <span className="text-sm px-2">OR</span>
-            <Separator />
-          </div>
 
           <Form {...form}>
             <form
@@ -97,15 +89,26 @@ const SignUp03Page = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="mt-4 w-full">
+              <Button type="submit" className="bg-[#093A58] mt-4 w-full">
                 Continue with Email
               </Button>
             </form>
           </Form>
 
+          <div className="my-7 w-full flex items-center justify-center overflow-hidden">
+            <Separator />
+            <span className="text-sm px-2">OR</span>
+            <Separator />
+          </div>
+
+          <Button className="w-full bg-[#093A58] gap-3" onClick={() => signIn("google", { callbackUrl: "/home" })}>
+            <GoogleLogo />
+            Continue with Google
+          </Button>
+
           <p className="mt-5 text-sm text-center">
             Already have an account?
-            <Link href="/login" className="ml-1 underline text-muted-foreground">
+            <Link href="/" className="ml-1 underline text-muted-foreground">
               Log in
             </Link>
           </p>
