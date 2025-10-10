@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { verifyAppJWT } from "@/lib/jwt";
@@ -32,11 +32,12 @@ async function requireAdmin() {
   return { ok: true as const };
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const check = await requireAdmin();
   if (!check.ok) return NextResponse.json({ error: "Forbidden" }, { status: check.status });
   try {
-    const id = Number(params?.id);
+    const safeParams = (await context.params).id ? await context.params : { id: "" } as { id: string };
+    const id = Number(safeParams?.id);
     if (!Number.isFinite(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
     const body = await req.json().catch(() => ({}));
     const parsed = updateSchema.safeParse(body);
@@ -57,11 +58,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const check = await requireAdmin();
   if (!check.ok) return NextResponse.json({ error: "Forbidden" }, { status: check.status });
   try {
-    const id = Number(params?.id);
+    const safeParams = (await context.params).id ? await context.params : { id: "" } as { id: string };
+    const id = Number(safeParams?.id);
     if (!Number.isFinite(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
     const { error } = await supabaseAdmin!
       .from("employees")
@@ -77,11 +79,12 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   }
 }
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const check = await requireAdmin();
   if (!check.ok) return NextResponse.json({ error: "Forbidden" }, { status: check.status });
   try {
-    const id = Number(params?.id);
+    const safeParams = (await context.params).id ? await context.params : { id: "" } as { id: string };
+    const id = Number(safeParams?.id);
     if (!Number.isFinite(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
     const { data, error } = await supabaseAdmin!
       .from("employees")

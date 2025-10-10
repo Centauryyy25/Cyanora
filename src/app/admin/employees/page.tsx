@@ -194,7 +194,7 @@ function AdminEmployeeEditor({ open, onOpenChange, onSaved, editingId, defaults 
   );
 }
 
-export default function AdminEmployeesPage() {
+function AdminEmployeesInner() {
   const router = useRouter();
   const search = useSearchParams();
   const [q, setQ] = React.useState("");
@@ -329,5 +329,13 @@ export default function AdminEmployeesPage() {
         />
       </main>
     </RoleGuard>
+  );
+}
+
+export default function AdminEmployeesPage() {
+  return (
+    <React.Suspense fallback={<div className="p-4 text-sm text-gray-500">Loading…</div>}>
+      <AdminEmployeesInner />
+    </React.Suspense>
   );
 }

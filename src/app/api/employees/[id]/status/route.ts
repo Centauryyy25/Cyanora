@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { verifyAppJWT } from "@/lib/jwt";
@@ -6,9 +6,10 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const ALLOWED = ["ACTIVE", "PROBATION", "INACTIVE"] as const;
 
-export async function PATCH(_req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const id = Number(params?.id);
+    const safeParams = (await context.params).id ? await context.params : { id: "" } as { id: string };
+    const id = Number(safeParams?.id);
     if (!Number.isFinite(id)) {
       return NextResponse.json({ error: "Invalid employee id" }, { status: 400 });
     }
@@ -56,4 +57,3 @@ export async function PATCH(_req: Request, { params }: { params: { id: string } 
     return NextResponse.json({ error: e?.message || "Unexpected error" }, { status: 500 });
   }
 }
-
