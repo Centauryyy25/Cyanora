@@ -35,6 +35,5 @@ export default async function ProfilePage() {
     redirect(`/profile/${employeeId}`);
   }
 
-  redirect("/dashboard");
+  redirect("/home");
 }
-

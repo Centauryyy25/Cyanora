@@ -1,0 +1,14 @@
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  const token = crypto.randomUUID();
+  const res = NextResponse.json({ token });
+  res.cookies.set("csrf_token", token, {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60, // 1 hour
+  });
+  return res;
+}

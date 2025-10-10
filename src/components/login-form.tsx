@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,17 +19,17 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const params = useSearchParams();
+  const callbackUrl = params?.get("callbackUrl") || "/home";
 
-  // Prefetch CSRF cookie so the backend accepts the login request
+  // Prefetch CSRF token so the backend accepts the login request
+  const [csrf, setCsrf] = useState<string>("");
   useEffect(() => {
-    fetch("/api/auth/me", { method: "GET", cache: "no-store" }).catch(() => {});
+    fetch("/api/auth/csrf", { method: "GET", cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => setCsrf(j?.token || ""))
+      .catch(() => {});
   }, []);
-
-  const getCookie = (name: string) =>
-    document.cookie
-      .split("; ")
-      .find((c) => c.startsWith(name + "="))
-      ?.split("=")[1];
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -37,7 +37,6 @@ export function LoginForm({
     setError(null);
 
     try {
-      const csrf = getCookie("csrf_token") ?? "";
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -48,14 +47,34 @@ export function LoginForm({
       });
       const json = await res.json();
       if (!res.ok) {
+        // If CSRF failed due to missing token, fetch a fresh one and retry once
+        if (res.status === 400 && (json?.error || "").toLowerCase().includes("csrf")) {
+          try {
+            const t = await fetch("/api/auth/csrf", { cache: "no-store" }).then((r) => r.json());
+            const newToken = t?.token || "";
+            setCsrf(newToken);
+            const retry = await fetch("/api/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": newToken,
+              },
+              body: JSON.stringify({ email, password }),
+            });
+            const rjson = await retry.json();
+            if (retry.ok) {
+              router.push(callbackUrl);
+              return;
+            }
+            setError(rjson?.error || "Email atau password salah.");
+            return;
+          } catch {}
+        }
         setError(json?.error || "Email atau password salah.");
         return;
       }
-      const role = json?.data?.role as string | undefined;
-      if (role === "Admin") router.push("/dashboard/admin");
-      else if (role === "HR") router.push("/dashboard/hr");
-      else if (role === "Karyawan") router.push("/dashboard/employee");
-      else router.push("/dashboard");
+      // Redirect to callbackUrl (default /home)
+      router.push(callbackUrl);
     } catch (err) {
       console.error("Login error:", err);
       setError("Gagal login. Coba lagi.");
@@ -73,7 +92,7 @@ export function LoginForm({
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
                 <p className="text-balance text-muted-foreground">
-                  Login to your Acme Inc account
+                  Login to your Cyanora account
                 </p>
               </div>
               {error ? (
@@ -132,7 +151,7 @@ export function LoginForm({
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+                  onClick={() => signIn("google", { callbackUrl: "/home" })}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path

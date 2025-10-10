@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 export const authConfig: NextAuthConfig = {
   // Keep Prisma adapter for Google OAuth users; Credentials will use JWT-only
   adapter: PrismaAdapter(prisma),
+  // Use JWT sessions to avoid DB session dependency during development
   session: { strategy: "jwt" },
   providers: [
     Google({
@@ -47,14 +48,40 @@ export const authConfig: NextAuthConfig = {
         }
 
         const data = await res.json();
-        const user = data?.user;
-        if (!user?.id) return null;
+        const sbUser = data?.user;
+        if (!sbUser?.id) return null;
+
+        // Ensure a Prisma user exists for this login (credentials)
+        // Reuse existing by email, else create new with Supabase user id.
+        // If Prisma is unavailable, fall back to Supabase user's data.
+        let id = sbUser.id as string;
+        let name = sbUser.user_metadata?.full_name ?? sbUser.email;
+        let image = sbUser.user_metadata?.avatar_url ?? null;
+        try {
+          let dbUser = await prisma.user.findUnique({ where: { email: sbUser.email as string } });
+          if (!dbUser) {
+            try {
+              dbUser = await prisma.user.create({
+                data: { id, email: sbUser.email, name, image },
+              });
+            } catch {
+              dbUser = await prisma.user.findUnique({ where: { email: sbUser.email as string } });
+            }
+          }
+          if (dbUser) {
+            id = dbUser.id;
+            name = dbUser.name ?? name;
+            image = dbUser.image ?? image;
+          }
+        } catch {
+          // Ignore Prisma connectivity errors; continue with Supabase identity
+        }
 
         return {
-          id: user.id,
-          email: user.email,
-          name: user.user_metadata?.full_name ?? user.email,
-          image: user.user_metadata?.avatar_url ?? null,
+          id,
+          email: sbUser.email,
+          name,
+          image,
           // Attach Supabase tokens for JWT callback
           supabaseAccessToken: data.access_token,
           supabaseRefreshToken: data.refresh_token,
@@ -64,6 +91,15 @@ export const authConfig: NextAuthConfig = {
     }),
   ],
   callbacks: {
+    async signIn({ user }) {
+      // Enforce single active session per user: remove old sessions before creating a new one
+      try {
+        if (user?.id) {
+          await prisma.session.deleteMany({ where: { userId: user.id as string } });
+        }
+      } catch {}
+      return true;
+    },
     async jwt({ token, user }) {
       // On first sign in, merge basic ids
       if (user) {

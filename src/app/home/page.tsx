@@ -1,38 +1,73 @@
 import NavigationBar from "@/components/ui/navigation-bar";
+import { RoleGuard } from "@/components/role-guard";
+import { TakeAttendanceSection } from "@/components/take-attendance";
 import {
   CalendarCheck,
-  Trophy,
-  Newspaper,
-  LineChart,
-  Users,
+  Megaphone,
   ClipboardList,
+  Stethoscope,
+  Plane,
+  UserCheck,
 } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
+import { verifyAppJWT } from "@/lib/jwt";
+import { AttendanceAnalytics } from "@/components/attendance-analytics";
+// Sheet actions are available on Request pages; here we navigate via links for clear URLs
+import Link from "next/link";
+import { WeeklyStatus } from "@/components/weekly-status";
+// import dynamic from "next/dynamic";
 
-export default function HomePage() {
-  const today = new Date().toLocaleDateString(undefined, {
+// const AttendanceAnalytics = dynamic(
+//   () => import("@/components/attendance-analytics").then(mod => mod.AttendanceAnalytics),
+//   { ssr: false } // <- sangat penting agar tidak dirender di server
+// );
+
+export default async function HomePage() {
+  const session = await auth();
+  let userName: string | undefined =
+    (session?.user?.name as string | undefined) ||
+    (session?.user?.email ? String(session.user.email).split("@")[0] : undefined);
+
+  // Fallback to custom app_session cookie if NextAuth session missing name
+  if (!userName) {
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get("app_session")?.value;
+      if (token) {
+        const payload = await verifyAppJWT(token);
+        userName = (payload as any)?.employee?.full_name
+          || (payload as any)?.username
+          || ((payload as any)?.email ? String((payload as any).email).split("@")[0] : undefined);
+      }
+    } catch {}
+  }
+  userName = userName || "User";
+  const today = new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
     month: "short",
     day: "numeric",
-  });
+  }).format(new Date());
 
   const features = [
-    { label: "Ask Leave", icon: CalendarCheck },
-    { label: "Leaderboard", icon: Trophy },
-    { label: "News", icon: Newspaper },
-    { label: "Predictor", icon: LineChart },
-    { label: "Friends", icon: Users },
+    { label: "Sakit", icon: Stethoscope },
+    { label: "Anouncement", icon: Megaphone },
+    { label: "Cuti", icon: Plane },
+    { label: "Kehadiran", icon: UserCheck },
     { label: "Assignments", icon: ClipboardList },
+    { label: "Ask Leave", icon: CalendarCheck },
   ];
 
   return (
-    <main className="min-h-[100dvh] bg-white pb-24">
+    <RoleGuard allow={["Karyawan"]} redirectTo="/login">
+    <main className="min-h-[100dvh] bg-background pb-24">
       {/* Header with gradient and greeting */}
-      <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-24 text-white">
+      <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-24 text-white animate-in fade-in-50 slide-in-from-top-2 duration-500">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm/5 text-white/80">{today}</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-              Welcome back, Ilham 👋
+              Welcome back, {userName} 👋
             </h1>
           </div>
           {/* Avatar placeholder */}
@@ -41,26 +76,9 @@ export default function HomePage() {
 
         {/* Attendance quick action card overlay */}
         <div className="absolute inset-x-5 -bottom-10">
-          <div className="rounded-2xl bg-white p-4 shadow-xl ring-1 ring-black/5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex-1">
-                <p className="text-xs text-gray-500">Today</p>
-                <p className="font-medium text-gray-900">Take Attendance Today</p>
-              </div>
-              <div className="flex w-full gap-2 sm:w-auto">
-                <input
-                  type="text"
-                  placeholder="Add note (optional)"
-                  className="h-10 w-full flex-1 rounded-xl border border-gray-200 px-3 text-sm shadow-sm outline-none transition focus:border-[#23A1A0] focus:ring-2 focus:ring-[#23A1A0]/30"
-                />
-                <button
-                  type="button"
-                  className="h-10 shrink-0 rounded-xl bg-[#23A1A0] px-4 text-sm font-medium text-white shadow-md transition active:scale-[0.98] hover:brightness-105"
-                >
-                  Submit
-                </button>
-              </div>
-            </div>
+          {/* New Take Attendance section */}
+          <div className="shadow-xl ring-1 ring-black/5 animate-in fade-in-50 zoom-in-95 duration-500 delay-100">
+            <TakeAttendanceSection />
           </div>
         </div>
       </header>
@@ -70,83 +88,16 @@ export default function HomePage() {
         {/* Weekly status + Analytics in responsive grid */}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-12">
           {/* Weekly status left */}
-          <div className="md:col-span-7">
+          <div className="md:col-span-7 animate-in fade-in-50 slide-in-from-bottom-2 duration-500 delay-100">
             <h2 className="mb-3 text-base font-semibold text-gray-900">Weekly Status</h2>
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-              {/* Days Row */}
-              <div className="flex items-center justify-between">
-                {[
-                  { d: "Mon", s: "✔️", c: "text-emerald-600" },
-                  { d: "Tue", s: "✔️", c: "text-emerald-600" },
-                  { d: "Wed", s: "❌", c: "text-rose-600" },
-                  { d: "Thu", s: "A", c: "text-amber-600" },
-                  { d: "Fri", s: "✔️", c: "text-emerald-600" },
-                ].map((x) => (
-                  <div key={x.d} className="flex flex-col items-center">
-                    <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 text-sm font-semibold ring-1 ring-gray-200">
-                      <span className={x.c}>{x.s}</span>
-                    </div>
-                    <span className="mt-1 text-xs text-gray-500">{x.d}</span>
-                  </div>
-                ))}
-              </div>
-              {/* Subtle baseline */}
-              <div className="mt-4 h-[2px] w-full rounded-full bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-              <p className="mt-3 text-xs text-gray-500">✔️ Present • ❌ Absent • A Leave</p>
-            </div>
+            <WeeklyStatus />
           </div>
 
           {/* Analytics right */}
-          <div className="md:col-span-5">
+          <div className="md:col-span-5 animate-in fade-in-50 slide-in-from-bottom-2 duration-500 delay-200">
             <h2 className="mb-3 text-base font-semibold text-gray-900">Analytics</h2>
-            <div className="grid grid-cols-3 gap-3">
-              {/* Attendance progress */}
-              <div className="group rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition hover:shadow-md">
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <div className="relative h-16 w-16">
-                    <svg viewBox="0 0 36 36" className="h-16 w-16">
-                      <path
-                        className="stroke-gray-200"
-                        strokeWidth="3.5"
-                        fill="none"
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                      <path
-                        className="stroke-[#23A1A0]"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        fill="none"
-                        strokeDasharray="83, 100"
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 grid place-items-center">
-                      <span className="text-sm font-semibold text-gray-900">83%</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500">Attendance</p>
-                </div>
-              </div>
-
-              {/* Leave Taken */}
-              <div className="group rounded-2xl border border-gray-100 bg-white p-3 text-center shadow-sm transition hover:shadow-md">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#23A1A0]/10 text-[#23A1A0]">
-                  <span className="text-xl font-semibold">03</span>
-                </div>
-                <p className="mt-2 text-xs text-gray-500">Leave Taken</p>
-              </div>
-
-              {/* Ongoing Days */}
-              <div className="group rounded-2xl border border-gray-100 bg-white p-3 text-center shadow-sm transition hover:shadow-md">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#093A58]/10 text-[#093A58]">
-                  <span className="text-xl font-semibold">23</span>
-                </div>
-                <p className="mt-2 text-xs text-gray-500">Ongoing Days</p>
-              </div>
+            <div className="grid grid-cols-1">
+              <AttendanceAnalytics />
             </div>
           </div>
         </div>
@@ -154,19 +105,99 @@ export default function HomePage() {
         {/* Features grid */}
         <div className="mt-6">
           <h2 className="mb-3 text-base font-semibold text-gray-900">Quick Actions</h2>
-          <div className="grid grid-cols-3 gap-3">
-            {features.map((f) => (
-              <button
-                key={f.label}
-                type="button"
-                className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm outline-none transition hover:shadow-md active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#23A1A0]/40 focus-visible:ring-offset-2"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 transition group-hover:border-[#23A1A0]/40 group-hover:text-[#23A1A0] group-active:scale-95">
-                  <f.icon className="h-5 w-5" />
-                </div>
-                <span className="text-xs font-medium text-gray-700">{f.label}</span>
-              </button>
-            ))}
+          <div className="grid grid-cols-3 gap-3 animate-in fade-in-50 duration-500 delay-300">
+            {features.map((f, i) => {
+              const style = { animationDelay: `${(i + 1) * 60}ms` } as const;
+              if (f.label === "Sakit") {
+                return (
+                  <Link
+                    key={f.label}
+                    href="/request/sick"
+                    className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm outline-none transition hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#23A1A0]/40 focus-visible:ring-offset-2 animate-in fade-in-50 zoom-in-95"
+                    style={style}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-br from-teal-50 to-cyan-50 text-gray-700 ring-1 ring-black/0 transition group-hover:border-[#23A1A0]/40 group-hover:text-[#23A1A0] group-hover:ring-black/5 group-active:scale-95">
+                      <f.icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">{f.label}</span>
+                  </Link>
+                );
+              }
+              if (f.label === "Cuti") {
+                return (
+                  <Link
+                    key={f.label}
+                    href="/request/leave"
+                    className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm outline-none transition hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#23A1A0]/40 focus-visible:ring-offset-2 animate-in fade-in-50 zoom-in-95"
+                    style={style}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-br from-teal-50 to-cyan-50 text-gray-700 ring-1 ring-black/0 transition group-hover:border-[#23A1A0]/40 group-hover:text-[#23A1A0] group-hover:ring-black/5 group-active:scale-95">
+                      <f.icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">{f.label}</span>
+                  </Link>
+                );
+              }
+              if (f.label === "Kehadiran") {
+                return (
+                  <Link
+                    key={f.label}
+                    href="/request/attendance"
+                    className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm outline-none transition hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#23A1A0]/40 focus-visible:ring-offset-2 animate-in fade-in-50 zoom-in-95"
+                    style={style}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-br from-teal-50 to-cyan-50 text-gray-700 ring-1 ring-black/0 transition group-hover:border-[#23A1A0]/40 group-hover:text-[#23A1A0] group-hover:ring-black/5 group-active:scale-95">
+                      <f.icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">{f.label}</span>
+                  </Link>
+                );
+              }
+              if (f.label === "Anouncement") {
+                return (
+                  <Link
+                    key={f.label}
+                    href="/announcement"
+                    className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm outline-none transition hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#23A1A0]/40 focus-visible:ring-offset-2 animate-in fade-in-50 zoom-in-95"
+                    style={style}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-br from-teal-50 to-cyan-50 text-gray-700 ring-1 ring-black/0 transition group-hover:border-[#23A1A0]/40 group-hover:text-[#23A1A0] group-hover:ring-black/5 group-active:scale-95">
+                      <f.icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">{f.label}</span>
+                  </Link>
+                );
+              }
+              if (f.label === "Assignments") {
+                return (
+                  <Link
+                    key={f.label}
+                    href="/request/assignments"
+                    className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm outline-none transition hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#23A1A0]/40 focus-visible:ring-offset-2 animate-in fade-in-50 zoom-in-95"
+                    style={style}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-br from-teal-50 to-cyan-50 text-gray-700 ring-1 ring-black/0 transition group-hover:border-[#23A1A0]/40 group-hover:text-[#23A1A0] group-hover:ring-black/5 group-active:scale-95">
+                      <f.icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">{f.label}</span>
+                  </Link>
+                );
+              }
+              
+              return (
+                <button
+                  key={f.label}
+                  type="button"
+                  className="group flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm outline-none transition hover:shadow-md active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#23A1A0]/40 focus-visible:ring-offset-2 animate-in fade-in-50 zoom-in-95"
+                  style={style}
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gradient-to-br from-teal-50 to-cyan-50 text-gray-700 ring-1 ring-black/0 transition group-hover:border-[#23A1A0]/40 group-hover:text-[#23A1A0] group-hover:ring-black/5 group-active:scale-95">
+                    <f.icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">{f.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -174,5 +205,6 @@ export default function HomePage() {
       {/* Bottom navigation - keep existing component and layout */}
       <NavigationBar />
     </main>
+    </RoleGuard>
   );
 }

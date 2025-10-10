@@ -29,6 +29,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { signOut } from "next-auth/react"
 
 export function NavUser({
   user,
@@ -40,6 +41,16 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+    } catch {}
+    try {
+      await signOut({ callbackUrl: "/login", redirect: true })
+      return
+    } catch {}
+    window.location.href = "/login"
+  }
 
   return (
     <SidebarMenu>
@@ -102,7 +113,12 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault()
+                handleLogout()
+              }}
+            >
               <LogOut />
               Log out
             </DropdownMenuItem>

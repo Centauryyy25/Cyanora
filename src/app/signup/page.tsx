@@ -45,7 +45,7 @@ const SignUp03Page = () => {
             Sign up for Shadcn UI Blocks
           </p>
 
-          <Button className="mt-8 w-full gap-3" onClick={() => signIn("google", { callbackUrl: "/dashboard" })}>
+          <Button className="mt-8 w-full gap-3" onClick={() => signIn("google", { callbackUrl: "/home" })}>
             <GoogleLogo />
             Continue with Google
           </Button>

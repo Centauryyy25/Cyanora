@@ -37,6 +37,7 @@ type EmployeeRow = {
   status: string;
   position?: { title: string | null } | null;
   department?: { name: string | null } | null;
+  is_favorite: boolean;
 };
 
 function initialsOf(name?: string | null) {
@@ -178,9 +179,12 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-[100dvh] p-4 pb-24 mx-auto max-w-screen-sm">
-      <div className="mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <Button variant="ghost" className="gap-2" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" /> Back
+        </Button>
+        <Button asChild variant="outline">
+          <a href="/">Logout</a>
         </Button>
       </div>
 

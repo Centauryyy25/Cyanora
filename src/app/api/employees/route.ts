@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // =========================================================
 // 🔧 SUPABASE CLIENT SETUP
@@ -22,9 +23,26 @@ const ALLOWED_STATUS = new Set(["ACTIVE", "PROBATION", "INACTIVE"]);
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const rawStatus = searchParams.get("status");
-    const status = rawStatus ? rawStatus.toUpperCase() : null;
-    const q = (searchParams.get("q") || "").trim();
+    const schema = z.object({
+      status: z
+        .string()
+        .optional()
+        .transform((v) => (v ? v.toUpperCase() : v)),
+      q: z.string().trim().default(""),
+      limit: z
+        .string()
+        .transform((v) => (v ? Number(v) : 25))
+        .pipe(z.number().int().min(1).max(100)),
+      offset: z
+        .string()
+        .transform((v) => (v ? Number(v) : 0))
+        .pipe(z.number().int().min(0)),
+    });
+    const parsed = schema.safeParse(Object.fromEntries(searchParams.entries()));
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid query params" }, { status: 400 });
+    }
+    const { status, q, limit, offset } = parsed.data as any;
 
     // --- 🧱 Validation ---
     if (status && !ALLOWED_STATUS.has(status)) {
@@ -67,8 +85,9 @@ export async function GET(req: Request) {
     // Base query
     let query = supabase
       .from("employees")
-      .select(select)
-      .order("full_name", { ascending: true });
+      .select(select, { count: "exact" })
+      .order("full_name", { ascending: true })
+      .range(offset, Math.max(offset, offset + limit - 1));
 
     // =========================================================
     // 🧭 FILTERING (use employment_status, not status)
@@ -81,7 +100,7 @@ export async function GET(req: Request) {
     // =========================================================
     // 🧠 EXECUTE QUERY
     // =========================================================
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
       console.error("/api/employees: Supabase query error:", {
@@ -112,7 +131,13 @@ export async function GET(req: Request) {
     // =========================================================
     // ✅ SUCCESS RESPONSE
     // =========================================================
-    return NextResponse.json({ data: flat }, { status: 200 });
+    const res = NextResponse.json(
+      { data: flat, paging: { limit, offset, count: count ?? undefined } },
+      { status: 200 },
+    );
+    // Light caching for repeated queries (tune for your env)
+    res.headers.set("Cache-Control", "public, max-age=60, s-maxage=60, stale-while-revalidate=120");
+    return res;
   } catch (err: any) {
     console.error("/api/employees: Unexpected error:", err?.message || err);
     return NextResponse.json(

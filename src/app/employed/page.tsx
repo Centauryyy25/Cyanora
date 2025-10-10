@@ -98,14 +98,15 @@ export default function EmployedPage() {
   const [status, setStatus] = React.useState<Status>("ALL");
   const { employees, isLoading, error } = useEmployees({ q, status });
 
-  const today = new Date().toLocaleDateString(undefined, {
+  const today = new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
     month: "short",
     day: "numeric",
-  });
+    timeZone: "Asia/Jakarta",
+  }).format(new Date());
 
   return (
-    <main className="min-h-[100dvh] bg-white pb-24">
+    <main className="min-h-[100dvh] bg-background pb-24">
       {/* Header matching Home styling */}
       <header className="relative rounded-b-3xl bg-gradient-to-br from-[#093A58] to-[#23A1A0] px-5 pt-10 pb-24 text-white">
         <div className="flex items-start justify-between">

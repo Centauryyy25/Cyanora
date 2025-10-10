@@ -3,6 +3,8 @@ import { cookies, headers } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { signAppJWT } from "@/lib/jwt";
+import { z } from "zod";
+import bcrypt from "bcryptjs";
 // Note: Password comparison switched to plain-text at user request.
 // For production, revert to bcrypt/argon2 verification.
 
@@ -16,10 +18,18 @@ export async function POST(req: Request) {
 
     const h = await headers();
     const ip = h.get("x-forwarded-for") || "local";
-    const body = (await req.json()) as LoginBody;
-    const identifierRaw = (body.email || "").trim();
+    const schema = z.object({
+      email: z.string().trim().min(3).max(200),
+      password: z.string().min(1).max(200),
+    });
+    const json = (await req.json()) as unknown;
+    const parsed = schema.safeParse(json);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    }
+    const identifierRaw = parsed.data.email.trim();
     const identifierLower = identifierRaw.toLowerCase();
-    const password = body.password || "";
+    const password = parsed.data.password;
 
     if (!identifierRaw || !password) {
       return NextResponse.json({ error: "Email and password required" }, { status: 400 });
@@ -45,7 +55,9 @@ export async function POST(req: Request) {
 
     const rl = rateLimit(`login:${ip}:${identifierLower}`, 5, 60_000);
     if (!rl.ok) {
-      return NextResponse.json({ error: "Too many attempts, try later" }, { status: 429 });
+      const resp = NextResponse.json({ error: "Too many attempts, try later" }, { status: 429 });
+      resp.headers.set("Retry-After", Math.ceil((rl.resetAt - Date.now()) / 1000).toString());
+      return resp;
     }
 
     // Fetch user, role, and permissions
@@ -67,10 +79,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Account inactive" }, { status: 403 });
     }
 
-    // Insecure plain-text password comparison to match DB as requested.
-    // WARNING: Do not use this in production. Store and verify hashes instead.
+    // Verify password: support bcrypt hashes and fallback to plain text
     const dbPwd = String(user.password_hash ?? "");
-    const ok = password === dbPwd;
+    let ok = false;
+    try {
+      if (dbPwd.startsWith("$2a$") || dbPwd.startsWith("$2b$") || dbPwd.startsWith("$2y$")) {
+        ok = await bcrypt.compare(password, dbPwd);
+      } else if (dbPwd.startsWith("$argon2")) {
+        // Optional: add argon2 verification if package is present
+        ok = false; // not supported here
+      } else {
+        // legacy/plain text fallback
+        ok = password === dbPwd;
+      }
+    } catch {
+      ok = false;
+    }
     if (!ok) {
       console.warn(`/api/auth/login: password mismatch for user id=${user.id}`);
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
@@ -180,7 +204,7 @@ export async function POST(req: Request) {
     resp.cookies.set("app_session", token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60 * 12, // 12h
     });
