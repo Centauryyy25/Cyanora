@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyAppJWT } from "@/lib/jwt";
@@ -8,7 +8,7 @@ function hasAdminPerm(perms?: unknown) {
   return p.includes("USER_CREATE") || p.includes("EMP_EDIT");
 }
 
-export async function POST(_: NextRequest, context: { params: Promise<{ jti: string }> }) {
+export async function POST(_: any, context: any) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("app_session")?.value;
@@ -19,8 +19,9 @@ export async function POST(_: NextRequest, context: { params: Promise<{ jti: str
     }
     if (!supabaseAdmin) return NextResponse.json({ error: "Server not configured" }, { status: 500 });
 
-    const safeParams = (await context.params).jti ? await context.params : { jti: "" } as { jti: string };
-    const jti = safeParams.jti;
+    const raw = context?.params;
+    const p = raw && typeof raw.then === "function" ? await raw : raw;
+    const jti = p?.jti ?? "";
     const { error } = await supabaseAdmin
       .from("app_sessions")
       .update({ revoked_at: new Date().toISOString() })
