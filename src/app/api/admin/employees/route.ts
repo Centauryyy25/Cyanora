@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { verifyAppJWT } from "@/lib/jwt";
@@ -17,7 +17,7 @@ const schema = z.object({
   photo_url: z.string().url().optional().nullable(),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("app_session")?.value;
@@ -66,4 +66,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: e?.message || "Unexpected error" }, { status: 500 });
   }
 }
-

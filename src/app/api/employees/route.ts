@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 // =========================================================
@@ -20,7 +20,7 @@ const ALLOWED_STATUS = new Set(["ACTIVE", "PROBATION", "INACTIVE"]);
 // =========================================================
 // 🚀 GET /api/employees
 // =========================================================
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const schema = z.object({

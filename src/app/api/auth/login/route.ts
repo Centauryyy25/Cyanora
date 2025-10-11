@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies, headers } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { rateLimit } from "@/lib/rate-limit";
@@ -10,7 +10,7 @@ import bcrypt from "bcryptjs";
 
 type LoginBody = { email?: string; password?: string };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     if (!supabaseAdmin) {
       return NextResponse.json({ error: "Server not configured" }, { status: 500 });

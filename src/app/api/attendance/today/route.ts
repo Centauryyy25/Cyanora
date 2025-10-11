@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyAppJWT } from "@/lib/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -62,7 +62,7 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     if (!supabaseAdmin) {
       console.warn("[AttendanceAPI] POST: supabaseAdmin not configured");
