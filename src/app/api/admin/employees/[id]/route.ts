@@ -32,6 +32,7 @@ async function requireAdmin() {
   return { ok: true as const };
 }
 
+// ✅ normalized for Next.js 15
 export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -61,6 +62,7 @@ export async function PUT(
   }
 }
 
+// ✅ normalized for Next.js 15
 export async function DELETE(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -85,6 +87,7 @@ export async function DELETE(
   }
 }
 
+// ✅ normalized for Next.js 15
 export async function GET(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }

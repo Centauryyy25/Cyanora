@@ -33,6 +33,7 @@ async function resolveEmployeeId(): Promise<number | null> {
   }
 }
 
+// ✅ normalized for Next.js 15
 export async function GET(_: NextRequest) {
   try {
     if (!supabaseAdmin) {

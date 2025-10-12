@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { verifyAppJWT } from "@/lib/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+// ✅ normalized for Next.js 15
 export async function GET(_: NextRequest) {
   try {
     const session = await auth();

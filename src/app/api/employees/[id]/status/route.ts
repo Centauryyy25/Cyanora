@@ -6,6 +6,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const ALLOWED = ["ACTIVE", "PROBATION", "INACTIVE"] as const;
 
+// ✅ normalized for Next.js 15
 export async function PATCH(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }

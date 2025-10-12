@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { verifyAppJWT } from "@/lib/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+// ✅ normalized for Next.js 15
 export async function POST(_: NextRequest) {
   const resp = NextResponse.json({ ok: true }, { status: 200 });
   try {
@@ -39,6 +40,7 @@ export async function POST(_: NextRequest) {
   return resp;
 }
 
+// ✅ normalized for Next.js 15
 export async function GET(_: NextRequest) {
   const res = NextResponse.redirect("/login");
   try {
