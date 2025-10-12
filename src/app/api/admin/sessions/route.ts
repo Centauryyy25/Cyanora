@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyAppJWT } from "@/lib/jwt";
@@ -8,7 +8,7 @@ function hasAdminPerm(perms?: unknown) {
   return p.includes("USER_CREATE") || p.includes("EMP_EDIT");
 }
 
-export async function GET() {
+export async function GET(_: NextRequest) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("app_session")?.value;
@@ -55,4 +55,3 @@ export async function GET() {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }
 }
-

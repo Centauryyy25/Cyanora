@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyAppJWT } from "@/lib/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-export async function POST() {
+export async function POST(_: NextRequest) {
   const resp = NextResponse.json({ ok: true }, { status: 200 });
   try {
     // Revoke current JTI if present
@@ -39,7 +39,7 @@ export async function POST() {
   return resp;
 }
 
-export async function GET() {
+export async function GET(_: NextRequest) {
   const res = NextResponse.redirect("/login");
   try {
     try {

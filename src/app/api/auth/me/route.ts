@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { verifyAppJWT } from "@/lib/jwt";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-export async function GET() {
+export async function GET(_: NextRequest) {
   try {
     const session = await auth();
     const cookieStore = await cookies();

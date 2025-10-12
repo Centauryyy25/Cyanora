@@ -33,7 +33,7 @@ async function resolveEmployeeId(): Promise<number | null> {
   }
 }
 
-export async function GET() {
+export async function GET(_: NextRequest) {
   try {
     if (!supabaseAdmin) {
       console.warn("[AttendanceAPI] GET: supabaseAdmin not configured");

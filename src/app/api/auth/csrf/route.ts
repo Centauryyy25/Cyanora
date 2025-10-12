@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(_: NextRequest) {
   const token = crypto.randomUUID();
   const res = NextResponse.json({ token });
   res.cookies.set("csrf_token", token, {
