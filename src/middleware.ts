@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 import { verifyAppJWT } from "@/lib/jwt";
 
 // Security headers (CSP tuned for Next.js + Supabase; adjust per deploy)
@@ -15,11 +14,28 @@ const csp = [
   "form-action 'self'",
 ].join("; ");
 
-export default auth(async (req) => {
+export default async function middleware(req: NextRequest) {
   const { nextUrl } = req;
-  // Prefer our DB-backed app_session over NextAuth to avoid identity mismatch
-  let isAuthed = false;
+  const pathname = nextUrl.pathname;
+
+  // Allow auth pages without checks
+  if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
+    const res = NextResponse.next();
+    res.headers.set("Content-Security-Policy", csp);
+    res.headers.set("X-Frame-Options", "DENY");
+    res.headers.set("X-Content-Type-Options", "nosniff");
+    res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.headers.set(
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=(), interest-cohort()"
+    );
+    res.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+    return res;
+  }
+
+  // Validate custom JWT (app_session)
   const token = req.cookies.get("app_session")?.value;
+  let isAuthed = false;
   if (token) {
     try {
       await verifyAppJWT(token);
@@ -28,17 +44,21 @@ export default auth(async (req) => {
       isAuthed = false;
     }
   }
-  // Fallback to NextAuth session if no valid app_session
-  if (!isAuthed) {
-    isAuthed = !!req.auth?.user;
-  }
-  const pathname = nextUrl.pathname;
 
   const isProtected = pathname.startsWith("/dashboard") || pathname.startsWith("/home");
+
   if (isProtected && !isAuthed) {
     const url = new URL("/login", nextUrl);
     url.searchParams.set("callbackUrl", nextUrl.pathname + nextUrl.search);
     const res = NextResponse.redirect(url);
+    // Ensure stale cookie is cleared when redirecting
+    res.cookies.set("app_session", "", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 0,
+    });
     res.headers.set("Content-Security-Policy", csp);
     res.headers.set("X-Frame-Options", "DENY");
     res.headers.set("X-Content-Type-Options", "nosniff");
@@ -63,7 +83,7 @@ export default auth(async (req) => {
   );
   res.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   return res;
-});
+}
 
 // Match all HTML/page routes and our protected areas; exclude Next internals and static assets.
 export const config = {

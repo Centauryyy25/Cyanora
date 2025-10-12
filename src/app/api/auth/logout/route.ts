@@ -5,7 +5,8 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // ✅ normalized for Next.js 15
 export async function POST(_: NextRequest) {
-  const resp = NextResponse.json({ ok: true }, { status: 200 });
+  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const res = NextResponse.redirect(new URL("/login", base));
   try {
     // Revoke current JTI if present
     try {
@@ -21,23 +22,43 @@ export async function POST(_: NextRequest) {
         }
       }
     } catch {}
-    resp.cookies.set("app_session", "", {
+    // Remove custom app_session and CSRF helper
+    res.cookies.set("app_session", "", {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 0,
     });
-    // Also clear legacy CSRF helper if set
-    resp.cookies.set("csrf_token", "", {
+    res.cookies.set("csrf_token", "", {
       httpOnly: false,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 0,
     });
+
+    // Best-effort: clear NextAuth cookies to avoid UI confusion
+    // Names vary by env (dev vs prod secure cookies), clear both variants
+    const nextAuthCookies = [
+      "next-auth.session-token",
+      "__Secure-next-auth.session-token",
+      "next-auth.csrf-token",
+      "__Host-next-auth.csrf-token",
+      "next-auth.callback-url",
+      "__Secure-next-auth.callback-url",
+    ];
+    for (const name of nextAuthCookies) {
+      res.cookies.set(name, "", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 0,
+      });
+    }
   } catch {}
-  return resp;
+  return res;
 }
 
 // ✅ normalized for Next.js 15

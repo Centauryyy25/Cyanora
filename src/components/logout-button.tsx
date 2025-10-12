@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
 export function LogoutButton({ className }: { className?: string }) {
@@ -13,13 +12,9 @@ export function LogoutButton({ className }: { className?: string }) {
     if (loading) return;
     setLoading(true);
     try {
-      await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
-      // Try NextAuth signOut to clear its cookies as well; fallback to /login
-      try {
-        await signOut({ callbackUrl: "/login", redirect: true });
-        return;
-      } catch {}
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
       router.replace("/login");
+      router.refresh();
     } finally {
       setLoading(false);
     }
@@ -42,4 +37,3 @@ export function LogoutButton({ className }: { className?: string }) {
     </Button>
   );
 }
-

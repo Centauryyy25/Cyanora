@@ -8,7 +8,6 @@ function hasAdminPerm(perms?: unknown) {
   return p.includes("USER_CREATE") || p.includes("EMP_EDIT");
 }
 
-// ✅ normalized for Next.js 15
 export async function GET(_: NextRequest) {
   try {
     const cookieStore = await cookies();

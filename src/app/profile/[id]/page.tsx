@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LogoutButton } from "@/components/logout-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -183,9 +184,7 @@ export default function ProfilePage() {
         <Button variant="ghost" className="gap-2" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
-        <Button asChild variant="outline">
-          <a href="/">Logout</a>
-        </Button>
+        <LogoutButton />
       </div>
 
       {loading && (

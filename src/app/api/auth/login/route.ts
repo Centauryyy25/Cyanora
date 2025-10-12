@@ -180,6 +180,7 @@ export async function POST(req: NextRequest) {
       } as any);
     } catch {}
 
+    // Issue JWT with 1 hour expiry
     const token = await signAppJWT({
       sub: String(user.id),
       email: user.email,
@@ -197,7 +198,7 @@ export async function POST(req: NextRequest) {
           }
         : null,
       last_login_at: nowIso,
-    });
+    }, 60 * 60);
 
     const resp = NextResponse.json({
       data: {
@@ -223,7 +224,7 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 12, // 12h
+      maxAge: 60 * 60, // 1h absolute session
     });
 
     return resp;
