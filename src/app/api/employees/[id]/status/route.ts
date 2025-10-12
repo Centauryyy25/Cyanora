@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { verifyAppJWT } from "@/lib/jwt";
@@ -6,11 +6,13 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const ALLOWED = ["ACTIVE", "PROBATION", "INACTIVE"] as const;
 
-export async function PATCH(_req: any, context: any) {
+export async function PATCH(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const raw = context?.params;
-    const p = raw && typeof raw.then === "function" ? await raw : raw;
-    const id = Number(p?.id);
+    const { id: idParam } = await context.params;
+    const id = Number(idParam);
     if (!Number.isFinite(id)) {
       return NextResponse.json({ error: "Invalid employee id" }, { status: 400 });
     }
