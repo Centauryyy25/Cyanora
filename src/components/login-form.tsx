@@ -45,6 +45,7 @@ export function LoginForm({
           "Content-Type": "application/json",
           "X-CSRF-Token": csrf,
         },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
       const json = await res.json();
@@ -61,6 +62,7 @@ export function LoginForm({
                 "Content-Type": "application/json",
                 "X-CSRF-Token": newToken,
               },
+              credentials: "include",
               body: JSON.stringify({ email, password }),
             });
             const rjson = await retry.json();
@@ -71,7 +73,7 @@ export function LoginForm({
                 console.debug("Login success (retry)", { role: roleName, permissions: perms });
                 console.log(`Role: ${roleName ?? "(tidak ada)"}`, "Permissions:", perms);
               } catch {}
-              router.push(callbackUrl);
+              window.location.assign(callbackUrl);
               return;
             }
             setError(rjson?.error || "Email atau password salah.");
@@ -89,7 +91,8 @@ export function LoginForm({
         console.log(`Role: ${roleName ?? "(tidak ada)"}`, "Permissions:", perms);
       } catch {}
       // Redirect to callbackUrl (default /home)
-      router.push(callbackUrl);
+      // Hard navigation ensures new cookies are applied before guard runs
+      window.location.assign(callbackUrl);
     } catch (err) {
       console.error("Login error:", err);
       setError("Gagal login. Coba lagi.");
