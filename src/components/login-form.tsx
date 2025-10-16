@@ -10,6 +10,16 @@ import { Label } from "@/components/ui/label";
 // Use public image path to avoid Turbopack ESM static import issues
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet";
 
 export function LoginForm({
   className,
@@ -190,9 +200,145 @@ export function LoginForm({
           </div>
         </CardContent>
       </Card>
-      <div className="text-balance text-center text-xs text-[#093A58]/60 [&_a]:underline [&_a]:underline-offset-4 [&_a]:text-[#093A58] hover:[&_a]:text-[#23A1A0] [&_a]:decoration-[#093A58] hover:[&_a]:decoration-[#23A1A0]">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+      <div className="text-balance text-center text-xs text-[#093A58]/70">
+        By clicking continue, you agree to our
+        {" "}
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              type="button"
+              className="inline underline underline-offset-4 text-[#093A58] hover:text-[#23A1A0] decoration-[#093A58] hover:decoration-[#23A1A0] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#23A1A0] rounded-[2px] px-0.5"
+            >
+              Terms of Service
+            </button>
+          </SheetTrigger>
+          <SheetContent side="right" className="sm:max-w-lg">
+            <div className="h-1 w-full bg-gradient-to-r from-[#093A58] to-[#23A1A0]" />
+            <SheetHeader>
+              <SheetTitle className="bg-gradient-to-r from-[#093A58] to-[#23A1A0] bg-clip-text text-transparent">
+                Terms of Service
+              </SheetTitle>
+              <SheetDescription className="text-[#093A58]/70">
+                Please review the terms carefully. This summary is provided for
+                convenience and does not replace the full terms.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-4 pt-0 space-y-6 overflow-y-auto">
+              <section className="space-y-4 text-sm leading-7 text-muted-foreground">
+                <p className="text-[#093A58] font-medium">Your Commitments</p>
+                <ul className="list-disc pl-5 space-y-2 marker:text-[#23A1A0]">
+                  <li>
+                    Acceptance: By using this application, you agree to comply
+                    with these terms and all applicable laws and regulations.
+                  </li>
+                  <li>
+                    Use of Service: Access is provided for authorized users and
+                    valid business purposes only. Do not circumvent security or
+                    misuse data.
+                  </li>
+                  <li>
+                    Accounts & Security: Keep credentials confidential. You are
+                    responsible for activities under your account.
+                  </li>
+                </ul>
+              </section>
+              <section className="space-y-3 text-sm leading-7 text-muted-foreground">
+                <p className="text-[#093A58] font-medium">Data & Access</p>
+                <ul className="list-disc pl-5 space-y-2 marker:text-[#23A1A0]">
+                  <li>
+                    Data Handling: Data is processed according to our privacy
+                    practices. Contact the administrator for inquiries.
+                  </li>
+                  <li>
+                    Termination: We may suspend or terminate access for
+                    violations or security concerns.
+                  </li>
+                </ul>
+              </section>
+              <div className="rounded-md border border-[#093A58]/10 bg-muted/30 p-4 text-xs text-[#093A58]/70">
+                Tip: Reach out to your system administrator for detailed
+                contracts or vendor terms.
+              </div>
+            </div>
+            <SheetFooter>
+              <SheetClose asChild>
+                <Button variant="outline" className="border-[#093A58] text-[#093A58] hover:bg-[#093A58]/10">
+                  Close
+                </Button>
+              </SheetClose>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+        {" "}and{" "}
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              type="button"
+              className="inline underline underline-offset-4 text-[#093A58] hover:text-[#23A1A0] decoration-[#093A58] hover:decoration-[#23A1A0] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#23A1A0] rounded-[2px] px-0.5"
+            >
+              Privacy Policy
+            </button>
+          </SheetTrigger>
+          <SheetContent side="right" className="sm:max-w-lg">
+            <div className="h-1 w-full bg-gradient-to-r from-[#093A58] to-[#23A1A0]" />
+            <SheetHeader>
+              <SheetTitle className="bg-gradient-to-r from-[#093A58] to-[#23A1A0] bg-clip-text text-transparent">
+                Privacy Policy
+              </SheetTitle>
+              <SheetDescription className="text-[#093A58]/70">
+                We respect your privacy. Below is a concise overview of how we
+                handle information in this application.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-4 pt-0 space-y-6 overflow-y-auto">
+              <section className="space-y-4 text-sm leading-7 text-muted-foreground">
+                <p className="text-[#093A58] font-medium">What We Collect</p>
+                <ul className="list-disc pl-5 space-y-2 marker:text-[#23A1A0]">
+                  <li>
+                    Account & Usage Data: Information necessary to provide and
+                    secure your access.
+                  </li>
+                  <li>
+                    Cookies & Sessions: Secure cookies maintain your sign-in
+                    state and preferences.
+                  </li>
+                </ul>
+              </section>
+              <section className="space-y-4 text-sm leading-7 text-muted-foreground">
+                <p className="text-[#093A58] font-medium">How We Use Data</p>
+                <ul className="list-disc pl-5 space-y-2 marker:text-[#23A1A0]">
+                  <li>Authentication and authorization.</li>
+                  <li>Security, analytics, and service improvements.</li>
+                </ul>
+              </section>
+              <section className="space-y-4 text-sm leading-7 text-muted-foreground">
+                <p className="text-[#093A58] font-medium">Sharing & Rights</p>
+                <ul className="list-disc pl-5 space-y-2 marker:text-[#23A1A0]">
+                  <li>
+                    We do not sell data. Providers may process data under
+                    strict obligations where necessary.
+                  </li>
+                  <li>
+                    Your Rights: Contact the administrator to access, correct,
+                    or delete data where applicable.
+                  </li>
+                </ul>
+              </section>
+              <div className="rounded-md border border-[#093A58]/10 bg-muted/30 p-4 text-xs text-[#093A58]/70">
+                Note: This overview is informational and may be supplemented by
+                internal policies.
+              </div>
+            </div>
+            <SheetFooter>
+              <SheetClose asChild>
+                <Button variant="outline" className="border-[#093A58] text-[#093A58] hover:bg-[#093A58]/10">
+                  Close
+                </Button>
+              </SheetClose>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+        .
       </div>
     </div>
   )

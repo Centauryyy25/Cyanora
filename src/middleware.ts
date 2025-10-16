@@ -40,7 +40,8 @@ export default async function middleware(req: NextRequest) {
     try {
       await verifyAppJWT(token);
       isAuthed = true;
-    } catch {
+    } catch (e) {
+      console.warn("[middleware] JWT verify failed:", (e as any)?.message || e);
       isAuthed = false;
     }
   }
@@ -51,6 +52,9 @@ export default async function middleware(req: NextRequest) {
     const url = new URL("/login", nextUrl);
     url.searchParams.set("callbackUrl", nextUrl.pathname + nextUrl.search);
     const res = NextResponse.redirect(url);
+    if (!token) {
+      console.warn("[middleware] No app_session cookie; redirecting to /login");
+    }
     // Ensure stale cookie is cleared when redirecting
     res.cookies.set("app_session", "", {
       httpOnly: true,

@@ -38,25 +38,7 @@ export async function POST(_: NextRequest) {
       maxAge: 0,
     });
 
-    // Best-effort: clear NextAuth cookies to avoid UI confusion
-    // Names vary by env (dev vs prod secure cookies), clear both variants
-    const nextAuthCookies = [
-      "next-auth.session-token",
-      "__Secure-next-auth.session-token",
-      "next-auth.csrf-token",
-      "__Host-next-auth.csrf-token",
-      "next-auth.callback-url",
-      "__Secure-next-auth.callback-url",
-    ];
-    for (const name of nextAuthCookies) {
-      res.cookies.set(name, "", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 0,
-      });
-    }
+    // Do not clear NextAuth cookies here; let next-auth/react signOut handle CSRF/session correctly.
   } catch {}
   return res;
 }
