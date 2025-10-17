@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import IlhamImg from "@/components/Asset/Ilham-Ahsan.jpg";
 import UbayImg from "@/components/Asset/Ubaydilah.jpg";
 import FirziImg from "@/components/Asset/Firzi-Sulaeman.jpg";
-import WhiteLogo from "@/components/Asset/White_Cynora.png";
+import RezaImg from "@/components/Asset/Reza.jpg";
 
 type Socials = {
   instagram?: string;
@@ -63,7 +63,7 @@ const TEAM: Member[] = [
     name: "Reza",
     role: "211011400500",
     initials: "DS",
-    avatarSrc: WhiteLogo,
+    avatarSrc: RezaImg,
     socials: {
       instagram: "https://instagram.com/dions",
       facebook: "https://facebook.com/dions",
