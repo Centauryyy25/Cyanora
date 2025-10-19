@@ -1,5 +1,5 @@
 <p align="center">
-  <b>Cyanora HRMS</b><br>
+  <h1>Cyanora HRMS</h1><br>
 </p>
 
 
