@@ -1,7 +1,4 @@
-<p align="center">
-  <h1>Cyanora HRMS</h1><br>
-</p>
-
+<h1 align="center">🌊 Cyanora HRMS</h1>
 
 ![Logo Cyanora](public/images/Cyanora.jpg)
 
