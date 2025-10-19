@@ -81,7 +81,7 @@ sequenceDiagram
 
 ### Clone & install
 ```bash
-git clone https://github.com/<username>/cyanora.git
+git clone https://github.com/Centauryyy25/Cyanora.git
 cd cyanora
 npm install
 npm run dev
