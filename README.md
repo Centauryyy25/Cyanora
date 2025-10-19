@@ -225,6 +225,9 @@ where rp.role_id = $1;
 
 ## 🪪 License & Credits
 - **License:** MIT License (see [`LICENSE`](./LICENSE)).
-- **Author:** Ilham Ahsan Saputra
+- **Author:**
+Created by Ilham Ahsan Saputra
+🎓 Informatics Student
+💻 Junior Network Engineer | AI & ML Enthusiast
 
 Cyanora HRMS — Simplify Human Resource Management with Modern Web Technology.
