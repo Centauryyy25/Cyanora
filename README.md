@@ -1,5 +1,7 @@
 # Cyanora HRMS
 
+![Logo Cyanora](public/images/Cyanora.jpg)
+
 > "Cyanora HRMS — Simplify Human Resource Management with Modern Web Technology."
 
 ## Table of Contents
