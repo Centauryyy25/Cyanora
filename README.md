@@ -1,4 +1,7 @@
-# Cyanora HRMS
+<p align="center">
+  <b>Cyanora HRMS</b><br>
+</p>
+
 
 ![Logo Cyanora](public/images/Cyanora.jpg)
 
