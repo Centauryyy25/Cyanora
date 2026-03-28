@@ -2,7 +2,7 @@
 
 ![Logo Cyanora](public/images/Cyanora.jpg)
 
-> "Cyanora HRMS — Simplify Human Resource Management with Modern Web Technology."
+> "Cyanora HRMS   Simplify Human Resource Management with Modern Web Technology."
 
 ## Table of Contents
 - [🧭 Overview](#-overview)
@@ -17,7 +17,7 @@
 - [🪪 License & Credits](#-license--credits)
 
 ## 🧭 Overview
-Cyanora HRMS is a modern web-based human resource management system that unifies employee lifecycle processes—from onboarding and authentication to daily operations such as attendance, leave, and announcements—inside a cohesive Next.js 15 experience. The frontend embraces server-centric rendering and a responsive shadcn/ui design language, while Supabase services supply realtime data, secure storage, and fine-grained permission controls for HR, administrators, and employees.【F:package.json†L2-L39】【F:src/components/permission-guard.tsx†L13-L79】
+Cyanora HRMS is a modern web-based human resource management system that unifies employee lifecycle processes from onboarding and authentication to daily operations such as attendance, leave, and announcements inside a cohesive Next.js 15 experience. The frontend embraces server-centric rendering and a responsive shadcn/ui design language, while Supabase services supply realtime data, secure storage, and fine-grained permission controls for HR, administrators, and employees.【F:package.json†L2-L39】【F:src/components/permission-guard.tsx†L13-L79】
 
 The platform is engineered to give HR teams clarity and speed: integration with Supabase provides a secure PostgreSQL foundation, row-level APIs, and granular RBAC enforcement, whereas Prisma acts as the local ORM for NextAuth-backed user identities.【F:src/lib/supabase-admin.ts†L1-L12】【F:src/lib/auth.ts†L1-L24】 Rich attendance tools capture geolocation, track check-in/check-out states, and automatically sync with employee records so every stakeholder sees accurate, up-to-date data.【F:src/components/take-attendance.tsx†L1-L200】【F:src/app/attendance/page.tsx†L1-L20】
 
@@ -149,14 +149,14 @@ Primary routes: `/dashboard`, `/attendance`, `/leave`, `/profile`, and `/home`. 
 ![Dashboard preview placeholder](https://placehold.co/1200x720/0f172a/ffffff?text=Cyanora+HRMS+Dashboard)
 
 ## 🧰 Tech Stack & Dependencies
-- **Next.js 15 & React 19** — App Router with RSC, streaming, and Turbopack for rapid builds.【F:package.json†L5-L35】
-- **TypeScript** — Strict typing across server and client modules.【F:package.json†L47-L49】
-- **Prisma ORM** — Database access layer for NextAuth tables and auxiliary models.【F:package.json†L15-L32】【F:prisma/schema.prisma†L1-L54】
-- **Supabase (Auth, Postgres, Storage)** — Primary data platform for HR entities, role/permission metadata, and secure file storage.【F:src/lib/supabase.ts†L1-L24】【F:src/app/api/auth/me/route.ts†L36-L181】
-- **Tailwind CSS + shadcn/ui + Radix primitives** — UI primitives and utility-first styling for consistent design tokens.【F:package.json†L16-L39】
-- **Lucide React** — Iconography suite for navigation and status feedback.【F:package.json†L28-L29】
-- **React Hook Form + Zod** — Form handling and schema validation (used across onboarding and HR workflows).【F:package.json†L14-L38】
-- **ESLint & Prettier (via Next tooling)** — Code formatting and linting integrated into the Next.js toolchain.
+- **Next.js 15 & React 19**   App Router with RSC, streaming, and Turbopack for rapid builds.【F:package.json†L5-L35】
+- **TypeScript**   Strict typing across server and client modules.【F:package.json†L47-L49】
+- **Prisma ORM**   Database access layer for NextAuth tables and auxiliary models.【F:package.json†L15-L32】【F:prisma/schema.prisma†L1-L54】
+- **Supabase (Auth, Postgres, Storage)**   Primary data platform for HR entities, role/permission metadata, and secure file storage.【F:src/lib/supabase.ts†L1-L24】【F:src/app/api/auth/me/route.ts†L36-L181】
+- **Tailwind CSS + shadcn/ui + Radix primitives**   UI primitives and utility-first styling for consistent design tokens.【F:package.json†L16-L39】
+- **Lucide React**   Iconography suite for navigation and status feedback.【F:package.json†L28-L29】
+- **React Hook Form + Zod**   Form handling and schema validation (used across onboarding and HR workflows).【F:package.json†L14-L38】
+- **ESLint & Prettier (via Next tooling)**   Code formatting and linting integrated into the Next.js toolchain.
 
 ## 🤝 Contributing & Maintenance
 1. **Branching strategy:**
@@ -190,10 +190,10 @@ Primary routes: `/dashboard`, `/attendance`, `/leave`, `/profile`, and `/home`. 
 - **role_permissions / permissions / roles:** Maps RBAC metadata consumed by permission guards.【F:src/app/api/auth/me/route.ts†L36-L151】
 
 ### Relationship summary
-- `roles` 1—* `role_permissions` *—1 `permissions`
-- `users` 1—* `employees` (by email association)
-- `employees` 1—* `attendance`
-- `employees` 1—* `leave_requests` and 1—1 `leave_balances`
+- `roles` 1 * `role_permissions` * 1 `permissions`
+- `users` 1 * `employees` (by email association)
+- `employees` 1 * `attendance`
+- `employees` 1 * `leave_requests` and 1 1 `leave_balances`
 
 ### Sample queries
 ```sql
@@ -230,4 +230,4 @@ Created by Ilham Ahsan Saputra
 🎓 Informatics Student
 💻 Junior Network Engineer | AI & ML Enthusiast
 
-Cyanora HRMS — Simplify Human Resource Management with Modern Web Technology.
+Cyanora HRMS   Simplify Human Resource Management with Modern Web Technology.
